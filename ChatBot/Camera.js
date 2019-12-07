@@ -3,25 +3,28 @@ import { Image, PixelRatio, StyleSheet, Text, TouchableOpacity, View, ImageBackg
 import ImagePicker from 'react-native-image-picker';
 import style from './style'
 import AwesomeAlert from 'react-native-awesome-alerts';
-import axios from 'axios';
 import DeviceInfo, { getUniqueId } from 'react-native-device-info';
 
 const uid = DeviceInfo.getUniqueId();
-// More info on all the options is below in the API Reference... just some common use cases shown here
 export default class TakePhoto extends React.Component {
-    /**
-     * The first arg is the options object for customization (it can also be null or omitted for default options),
-     * The second arg is the callback which sends object: response (more info in the API Reference)
-     */
     static navigationOptions = {
         header: null,
         headerMode: 'none'
     }
     constructor(props) {
         super(props);
-
+       
         this.selectPhotoTapped = this.selectPhotoTapped.bind(this);
-        this.state = { showAlert: true, avatarSource: null, photo: null };
+        this.state = { showAlert: true, avatarSource: null, photo: null, isdisabled:true, bgColor:false};
+    }
+    bgColor1(bgColor) {
+        console.log("bgColor:",bgColor)
+        if(this.state.bgColor==true){
+            return styles.dataButton;
+        }
+        else{
+            return styles.dataDefault;
+        }
     }
     showAlert = () => {
         this.setState({
@@ -34,55 +37,46 @@ export default class TakePhoto extends React.Component {
             showAlert: false
         });
     };
+  
     UploadPhoto() {
+        console.log('id', uid);
         const url = "https://zoochatbotpython.appspot.com/upload";  
         const image = {
-            uri: this.state.photo.uri,
-            type: 'image/jpeg',
-            name: this.state.photo.fileName
+          uri: this.state.photo.uri,
+          type: 'image/jpeg',
+          name: this.state.photo.fileName
         }
         const imgBody = new FormData();
         imgBody.append('file', image);
+        imgBody.append('userid', uid);
         console.log('imgBody:', imgBody);
-
+      
         fetch(url, {
-            method: 'POST',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'multipart/form-data',
-            },
-            body: imgBody
+          method: 'POST',
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'multipart/form-data',
+          },
+          body: imgBody
         })
-            .then(response => {
-                console.log('response upload', response);
-                this.postId(image);
-                alert("upload successful")
-            })
-            .catch(error => {
-                console.error(error);
-                alert("upload failed")
-                this.setState({ photo: null });
-            });
-    }
-    postId(image){
-        const url = "https://zoochatbotpython.appspot.com/uploadimage/database";
-        axios.post(url, {
-          imgUri: image,
-          userid: uid
+        .then((response) =>{
+          console.log('response upload',response);
+          alert("อัพโหลดเสร็จเรียบร้อย")
+          this.setState({ isdisabled:false, bgColor:true });
         })
-        .then(response =>{
-          console.log('upload id,uri response =>',response);
-        })
-        .catch(err =>{
-          console.log('upload id,uri error =>',err);
-        })
+        .catch((error) => {
+          console.error(error);
+          alert("เกิดความผิดพลาด")
+          this.setState({ photo: null });
+        });
       }
     selectPhotoTapped() {
         const options = {
-            //quality: 1.0,
+            rotation:0,
             storageOptions: {
                 skipBackup: true,
                 path: './zooimage',
+                
             },
         };
 
@@ -101,9 +95,6 @@ export default class TakePhoto extends React.Component {
                 console.log("response", response);
                 console.log("uri:", response.uri.replace('file://', ''));
                 this.UploadPhoto();
-                // You can also display the image using data:
-                // let source = { uri: 'data:image/jpeg;base64,' + response.data };
-
                 this.setState({
                     avatarSource: source,
                 });
@@ -115,13 +106,12 @@ export default class TakePhoto extends React.Component {
         const { navigate } = this.props.navigation;
         const { showAlert } = this.state;
         return (
-            //<Image source={this.state.avatarSource} style={styles.uploadAvatar} />
             <ImageBackground source={require('./Image/bg1.png')} style={style.backgroundImage}>
 
                 <View style={styles.container}>
 
                     <View style={style.justContain}>
-                        <Image source={require('./Image/zoo4.png')} style={styles.logo}></Image>
+                        <Image source={require('./Image/takepic1.png')} style={styles.logo}></Image>
                         <Text style={styles.menubtn}><Text> TAKE PICTURE </Text></Text>
                     </View>
                     <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
@@ -130,25 +120,25 @@ export default class TakePhoto extends React.Component {
                             style={[styles.avatar, styles.avatarContainer, { marginBottom: 20 }]}>
                             {this.state.avatarSource === null ? (
 
-                                <Text>คลิ๊กตรงนี้เพื่อถ่ายรูปครับ !</Text>
+                                <Text style={styles.styleIm}>กดตรงนี้เพื่อถ่ายรูปครับ !</Text>
 
                             ) : (
                                     <Image style={styles.avatar} source={this.state.avatarSource} />
                                 )}
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.dataButton} onPress={() => navigate('Data', { name: 'user' })}>
+                    <TouchableOpacity  disabled={this.state.isdisabled} onPress={() => navigate('Data', { name: 'user' })} style={this.bgColor1()}>
                         <Text style={styles.fontTitle}>View Information</Text>
                     </TouchableOpacity>
                     <AwesomeAlert
                         show={showAlert}
                         showProgress={false}
-                        title="ZooImage"
-                        message="คลิ๊ก ! พื้นที่สีเทาเพื่อทำการถ่ายรูป. โปรดถ่ายรูปให้เห็นหน้าสัตว์ด้วยครับ"
+                        title="Zoo Notify"
+                        message="คลิ๊ก ! พื้นที่สีเทาเพื่อทำการถ่ายรูป. โปรดถ่ายรูปให้เห็นหน้าสัตว์ด้วยครับ เมื่อถ่ายรูปเสร็จแล้วต้องรอจนกว่าจะขึ้นอัพโหลดเสร็จเรียบร้อยแล้วจึงกด View Information เพื่อดูข้อมูลสัตว์ได้ครับ"
                         closeOnTouchOutside={true}
                         closeOnHardwareBackPress={false}
                         showConfirmButton={true}
-                        confirmText="Ok, got it."
+                        confirmText="รับทราบ"
                         confirmButtonColor="#2DCD87"
                         onCancelPressed={() => {
                             this.hideAlert();
@@ -209,6 +199,21 @@ const styles = StyleSheet.create({
         fontFamily: 'OpenSans_Light',
         alignItems: 'center'
     },
+    dataDefault: {
+        marginTop: 10,
+        width: '100%',
+        height: 60,
+        backgroundColor: '#636465',
+        borderRadius: 6,
+        justifyContent: 'center',
+        padding: 3,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+        fontSize: 45,
+        fontFamily: 'OpenSans_Light',
+        alignItems: 'center',
+        color:'#A5A6A7'
+    },
     logo: {
         width: 120,
         height: 120,
@@ -218,5 +223,8 @@ const styles = StyleSheet.create({
         color: 'white',
         fontFamily: 'OpenSans_Bold',
         fontSize: 30
+    },
+    styleIm:{
+        fontSize:20,
     }
 });

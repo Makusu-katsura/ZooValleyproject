@@ -1,10 +1,9 @@
 import React, { Component } from 'react'
 import { StyleSheet, Text, View, Alert, StatusBar, TouchableOpacity, ImageBackground, Image, ScrollView } from 'react-native'
 import CameraRoll from "@react-native-community/cameraroll";
-
-import SelectedPhoto from './SelectedPhoto';
 import { Button } from 'native-base';
-
+import DeviceInfo, { getUniqueId } from 'react-native-device-info';
+const uid = DeviceInfo.getUniqueId();
 export default class AutoChatBot extends Component {
     static navigationOptions = {
         header: null,
@@ -12,10 +11,18 @@ export default class AutoChatBot extends Component {
     state = {
         selected: '',
         photos: [],
-        showSelectedPhoto: false,
-        uri: ''
+        isdisabled: true, bgColor: false,
+        fileName: ''
     };
-
+    bgColor1(bgColor) {
+        console.log("bgColor:",bgColor)
+        if(this.state.bgColor==true){
+            return styles.dataButton;
+        }
+        else{
+            return styles.dataDefault;
+        }
+    }
     componentDidMount() {
 
         CameraRoll.getPhotos({
@@ -31,38 +38,66 @@ export default class AutoChatBot extends Component {
             .catch((err) => {
                 //Error Loading Images
             });
+
     };
-    selectImage(uri) {
+    UploadPhoto() {
+        const url = "https://zoochatbotpython.appspot.com/upload";
+        console.log('hi:', this.state.selected);
+        const image = {
+            uri: this.state.selected,
+            type: 'image/jpeg',
+            name: this.state.fileName
+
+        }
+        const imgBody = new FormData();
+        imgBody.append('file', image);
+        imgBody.append('userid', uid);
+        console.log('imgBody:', imgBody);
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'multipart/form-data',
+            },
+            body: imgBody
+        })
+            .then(response => {
+                console.log('response upload', response);
+
+                alert("upload successful")
+                this.setState({ isdisabled: false, bgColor: true });
+
+            })
+            .catch(error => {
+                console.error(error);
+                alert("upload failed")
+                this.setState({ photo: null });
+            });
+    }
+
+    selectImage(uri, filename) {
         // define whatever you want to happen when an image is selected here
         this.setState({
             selected: uri,
-            showSelectedPhoto: true,
-            uri: uri
-        });
+            fileName: filename
+            // showSelectedPhoto: true,
 
-        console.log('Selected image: ', uri);
+        });
+        //if(this.state.selected!=null)
+        this.UploadPhoto();   
+
+
+        console.log('Selected image: ', this.state.selected);
     }
     render() {
         const { navigate } = this.props.navigation;
-        const { showSelectedPhoto, uri } = this.state;
-        if (showSelectedPhoto) {
-            /*this.props.navigation.navigate('SelectedPhoto',{ name: 'user' })
-            const {uri}=this.state.uri;*/
-           return (
-                <View>
-                    <SelectedPhoto
-                        uri={uri}
-                         />
-                    
-                </View>
-           )
-        }
         return (
 
             <ImageBackground source={require('./Image/bg1.png')} style={styles.backgroundImage}>
                 <View style={styles.container}>
                     <View style={styles.justContain}>
-                        <Image source={require('./Image/zoo4.png')} style={styles.logo}></Image>
+                        <Image source={require('./Image/album1.png')} style={styles.logo}></Image>
                         <Text style={styles.menubtn}><Text> ALBUM </Text></Text>
 
                     </View>
@@ -73,7 +108,9 @@ export default class AutoChatBot extends Component {
 
                             return (
 
-                                <TouchableOpacity key={i} onPress={() => navigate('Data', { name: 'user' })} >
+                                <TouchableOpacity key={i}
+                                    onPress={() => this.selectImage(p.node.image.uri, p.node.image.fileName)}
+                                >
 
                                     <Image
                                         key={i}
@@ -85,10 +122,12 @@ export default class AutoChatBot extends Component {
                             );
 
                         })}
-
+                       
                     </View>
                     </ScrollView>
-
+                    <TouchableOpacity disabled={this.state.isdisabled} onPress={() => navigate('Data', { name: 'user' })} style={this.bgColor1()}>
+                            <Text style={styles.fontTitle}>View Information</Text>
+                        </TouchableOpacity>
                 </View>
 
             </ImageBackground>
@@ -164,5 +203,20 @@ const styles = StyleSheet.create({
     fontTitle: {
         color: 'white',
         fontFamily: 'OpenSans_Bold',
-    }
+    },
+    dataDefault: {
+        marginTop: 10,
+        width: '100%',
+        height: 60,
+        backgroundColor: '#636465',
+        borderRadius: 6,
+        justifyContent: 'center',
+        padding: 3,
+        textAlign: 'center',
+        textAlignVertical: 'center',
+        fontSize: 45,
+        fontFamily: 'OpenSans_Light',
+        alignItems: 'center',
+        color:'#A5A6A7'
+    },
 })

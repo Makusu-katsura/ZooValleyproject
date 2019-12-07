@@ -8,12 +8,10 @@ import {name as appName} from './app.json';
 import Splash from './ChatBot/Splash';
 import Chat from './ChatBot/Chat';
 import  menu from './ChatBot/Menu';
-import gallery from './gallery/ViewPhotos'
-import interaction from'./ChatBot/interactionContainer';
+import gallery from './ChatBot/album'
 import Data from './ChatBot/DataZoo'
-import test from './test'
 import AppContainer from './ChatBot/Menu'
-AppRegistry.registerComponent(appName, () =>  Main);
+AppRegistry.registerComponent(appName, () =>Main);
 class Main extends Component{
     constructor(props){
         super(props);
