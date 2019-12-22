@@ -2,23 +2,25 @@ import React, { Component } from 'react'
 import { StyleSheet, Text, View, Button, Alert, StatusBar, TouchableOpacity, ImageBackground, Image } from 'react-native'
 import { GiftedChat } from 'react-native-gifted-chat';
 import axios from 'axios';
-import AsyncStorage from '@react-native-community/async-storage';
 import DeviceInfo, { getUniqueId } from 'react-native-device-info';
 const bot_user = {
   _id: 2,
   name: 'ChibaInuBot',
-  avatar: 'https://webserv.kmitl.ac.th/ite60010295/image/avatar2.png'
+  avatar: require('./Image/avatar2.png') //ให้ bot ชื่อว่า ChibaInuBot และ set รูป avatar
 }
 const uid = DeviceInfo.getUniqueId()
 class Example extends Component {
   static navigationOptions = {
-    header: null
-  }
+    title: 'Zoo Valley',
+    headerTitleStyle: { flex: 1, textAlign: 'center', color: 'white' },
+    headerLeft: null,
+    headerStyle: {
+        backgroundColor: '#2DCD87',
+    },
+}
   constructor() {
     super()
     this.state = {
-      isLoadingEarlier: false,
-
       messages: [
         {
           _id: 1,
@@ -27,7 +29,8 @@ class Example extends Component {
           user: bot_user,
           image: ''
         },
-
+        //set state ค่าแรกของ message ให้เป็นคำพูดจาก bot
+        //message ตรงนี้จะเปลี่ยน state ไปเรื่อยๆเมื่อมีการ send ข้อความาจากฝั่งใดฝั่งหนึ่ง
       ], id: uid
     }
   };
@@ -35,39 +38,38 @@ class Example extends Component {
 
     this.setState(previousState => ({
       messages: GiftedChat.append(previousState.messages, messages),
-    }))
+    })) //set state ของ message เป็นคำที่เราพิมพ์เข้าไป เมื่อกดส่ง
 
     console.log('onsend');
     let input_word = messages[0].text;
 
-    this.PostMessage(input_word);
+    this.PostMessage(input_word); // เรียกใช้ function post ส่งข้อความขึ้น cloud 
   };
 
   PostMessage(input_word) {
-    const url = 'https://zoochatbotpython.appspot.com';
+    const url = 'https://zoochatbotpython.appspot.com'; //url เชื่อม api กับ database
     const bot = axios.post(url, {
       id: this.state.id,
       input_word: input_word
-    })
+    })  //post ข้อความขึ้นไปบน cloud ผ่าน api โดยประกอบไปด้วย ur,user id,ข้อความ
       .then(function (response) {
         console.log('Post response', response);
       })
       .catch(function (error) {
         console.log(error);
       });
-    this.BotResponse();
+    this.BotResponse(bot); //เรียกใช้ function get เพื่อดึงข้อมูลจากการประมวลผลของ bot 
   }
 
   BotResponse() {
-    const id = this.state.id;
+    const id = this.state.id; 
     console.log('id', id);
-    const url = `http://zoochatbotpython.appspot.com/get/datab/${id}`;
+    const url = `http://zoochatbotpython.appspot.com/get/datab/${id}`; //url เชื่อม api กับ database โดยเพิ่ม user id ต่อท้ายเพื่อระบุตัวตน
     axios.get(url)
       .then((Data) => {
         console.log('JSON:', Data);
-        const phrase = Data.data.phrase;
-        const image = Data.data.map;
-        //  const image=null;
+        const phrase = Data.data.phrase;  //ข้อมูลที่ส่งมาตอนแรกจะเป็นชุด dict ของข้อความ ตรงนี้จะดึงส่วนที่เป็นข้อความออกมาจาก Dict
+        const image = Data.data.map;  //ดึงส่วนที่เป็นรูปภาพออกมาจาก dict
         let msg = [
           {
             _id: this.state.messages.length + 1,
@@ -75,12 +77,9 @@ class Example extends Component {
             createdAt: new Date(),
             user: bot_user,
             image: image
-          }];
-
-
-
+          }]; //นำข้อความหรือรูปภาพมาใส่ในตัวแปร message
         this.setState(previousState => ({
-          messages: GiftedChat.append(previousState.messages, msg)
+          messages: GiftedChat.append(previousState.messages, msg)  //นำ message ไป set state
         }));
       })
   }
@@ -89,11 +88,9 @@ class Example extends Component {
     console.log('uid:', this.state.id);
     console.log(this.state.messages);
     return (
-      //<InteractionContainer onInactive={() => navigator.pop()}>
-
       <ImageBackground source={require('./Image/bg1.png')} style={styles.backgroundImage}>
         <GiftedChat
-          messages={this.state.messages}
+          messages={this.state.messages}  //ในส่วน chat state ของ massage จะเปลี่ยนไปเรื่อยๆเมื่อมีข้อความใหม่ๆเข้ามา
           onSend={messages => this.onSend(messages)}
           alwaysShowSend={true}
 
@@ -114,7 +111,7 @@ const styles = StyleSheet.create({
     margin: 30,
     flex: 1,
     alignItems: 'center',
-    textAlign: 'center',
+    textAlign: 'center'
   },
   logo: {
     width: 120,

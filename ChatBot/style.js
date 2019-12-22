@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import { StyleSheet, Text, View} from 'react-native'
+import { widthPercentageToDP as wp, heightPercentageToDP as hp} from 'react-native-responsive-screen'
 const styles = StyleSheet.create({
     container: {
-        margin: 40,
+        margin: '10%',
         flex: 1,
         alignItems: 'center',
         textAlign: 'center',
@@ -42,27 +43,38 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     menubtn: {
-        margin: 10,
-        width: '60%',
-        height: 115,
+        margin: '2%',
+        width: wp('45%'),
+        height: hp('15%'),
         backgroundColor: 'white',
         borderRadius: 10,
         justifyContent: 'center',
-        padding:3,
+        paddingLeft:10,
         fontFamily:'OpenSans_Bold',
-        fontSize:14,
+        fontSize:hp('1.7%'),
     },
     btnmenu: {
-        margin: 30,
+        margin: 20,
         width: '95%',
         height: 100,
         backgroundColor: 'white',
         borderRadius: 10,
         justifyContent: 'center',
     },
+    btntouch:{
+        margin: 20,
+        width: '95%',
+        height: 100,
+    },
+    btnimg:{
+        marginTop: '7%',
+        width: wp('100%'),
+        height: hp('14%'),
+        justifyContent: 'center'
+    },
     logo: {
-        width: 120,
-        height: 120,
+        width: wp('30%'),
+        height: hp('16%'),
         resizeMode: 'stretch'
     },
 })

@@ -4,8 +4,8 @@ import ImagePicker from 'react-native-image-picker';
 import style from './style'
 import AwesomeAlert from 'react-native-awesome-alerts';
 import DeviceInfo, { getUniqueId } from 'react-native-device-info';
-
-const uid = DeviceInfo.getUniqueId();
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
+const uid = DeviceInfo.getUniqueId();   //ดึง id ของเครื่อง user มาใช้เป็น user id 
 export default class TakePhoto extends React.Component {
     static navigationOptions = {
         header: null,
@@ -13,16 +13,17 @@ export default class TakePhoto extends React.Component {
     }
     constructor(props) {
         super(props);
-       
+
         this.selectPhotoTapped = this.selectPhotoTapped.bind(this);
-        this.state = { showAlert: true, avatarSource: null, photo: null, isdisabled:true, bgColor:false};
+        this.state = { showAlert: true, avatarSource: null, photo: null, isdisabled: true, bgColor: false };
     }
-    bgColor1(bgColor) {
+    bgColor1(bgColor) { //เป็นการแสดงปุ่มของการแสดงข้อมูล โดยถ้าหากยังไม่ทำการอัพโหลดข้อมูล ตัว stage จะแสดงปุ่มเป็นสีเทา ถ้าหากอัพโหลดแล้วจะเป็น สีเขียว
         console.log("bgColor:",bgColor)
-        if(this.state.bgColor==true){
+        console.log("bgColor:", bgColor)
+        if (this.state.bgColor == true) {
             return styles.dataButton;
         }
-        else{
+        else {
             return styles.dataDefault;
         }
     }
@@ -37,46 +38,45 @@ export default class TakePhoto extends React.Component {
             showAlert: false
         });
     };
-  
+
     UploadPhoto() {
         console.log('id', uid);
-        const url = "https://zoochatbotpython.appspot.com/upload";  
+        const url = "https://zoochatbotpython.appspot.com/upload";  //url เชื่อม api กับ database
         const image = {
-          uri: this.state.photo.uri,
-          type: 'image/jpeg',
-          name: this.state.photo.fileName
-        }
-        const imgBody = new FormData();
+            uri: this.state.photo.uri,
+            type: 'image/jpeg',
+            name: this.state.photo.fileName
+        }   //dict รูปภาพ ประกอบไปด้วย ตำแหน่งของรูป,ชนิดของไฟล์,ชื่อไฟล์
+        const imgBody = new FormData(); //form ในการส่งรูปประกอบไปด้วย รูป และ user id 
         imgBody.append('file', image);
         imgBody.append('userid', uid);
         console.log('imgBody:', imgBody);
-      
+
         fetch(url, {
-          method: 'POST',
-          headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'multipart/form-data',
-          },
-          body: imgBody
-        })
-        .then((response) =>{
-          console.log('response upload',response);
-          alert("อัพโหลดเสร็จเรียบร้อย")
-          this.setState({ isdisabled:false, bgColor:true });
-        })
-        .catch((error) => {
-          console.error(error);
-          alert("เกิดความผิดพลาด")
-          this.setState({ photo: null });
-        });
-      }
+            method: 'POST', 
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'multipart/form-data',
+            },
+            body: imgBody
+        }) //ติดต่อ api ส่งรูปภาพไปยัง cloud ซึ่งดึงได้แค่ทีละรูป จึงต้องสร้าง form เพื่อใช้เป็น pattern ในการส่งรูป
+            .then((response) => {
+                console.log('response upload', response);
+                alert("อัพโหลดเสร็จเรียบร้อย")  //เช็คสถานะการอัพโหลด หากสำเร็จให้ alert successful
+                this.setState({ isdisabled: false, bgColor: true });
+            })
+            .catch((error) => {
+                console.error(error);
+                alert("เกิดความผิดพลาด")
+                this.setState({ photo: null });
+            });
+    }
     selectPhotoTapped() {
         const options = {
-            rotation:0,
             storageOptions: {
                 skipBackup: true,
-                path: './zooimage',
-                
+                path: './zooimage', //แก้ที่อยู่ของรูปภาพที่ถ่ายให้ไปอยู่ใน folder zooimage ที่สร้างเพิ่มในมือถือ เมื่อใช้งานกล้องครั้งแรก 
+
             },
         };
 
@@ -84,51 +84,46 @@ export default class TakePhoto extends React.Component {
             console.log('Response = ', response);
 
             if (response.didCancel) {
-                console.log('User cancelled photo picker');
+                console.log('User cancelled photo picker'); 
             } else if (response.error) {
                 console.log('ImagePicker Error: ', response.error);
             } else if (response.customButton) {
                 console.log('User tapped custom button: ', response.customButton);
             } else {
-                let source = { uri: response.uri };
-                this.setState({ photo: response });
+                let source = { uri: response.uri }; //เมื่อถ่ายภาพเสร็จจะให้ตัวแปร source เก็บ path ของรูปเอาไว้
+                this.setState({ photo: response }); // set ให้ตัวแปร photo มีค่าเป็นรูปภาพที่ถ่ายมา
                 console.log("response", response);
                 console.log("uri:", response.uri.replace('file://', ''));
-                this.UploadPhoto();
+                this.UploadPhoto(); //เรียกใช้ function upload เพื่อส่งที่อยู่และชื่อรูปขึ้นไป predict บน cloud 
                 this.setState({
-                    avatarSource: source,
+                    avatarSource: source,   //นำ path ของรูปมา set state เพื่อแสดงในกรอบสี่เหลี่ยม
                 });
             }
         });
     }
     render() {
-
         const { navigate } = this.props.navigation;
         const { showAlert } = this.state;
         return (
             <ImageBackground source={require('./Image/bg1.png')} style={style.backgroundImage}>
-
                 <View style={styles.container}>
-
                     <View style={style.justContain}>
                         <Image source={require('./Image/takepic1.png')} style={styles.logo}></Image>
                         <Text style={styles.menubtn}><Text> TAKE PICTURE </Text></Text>
                     </View>
-                    <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>
-
+                    <TouchableOpacity onPress={this.selectPhotoTapped.bind(this)}>  {/*เมื่อกดที่ช่องสี่เหลี่ยมจะเข้ากล้องเพื่อใช้ถ่ายภาพ */}
                         <View
                             style={[styles.avatar, styles.avatarContainer, { marginBottom: 20 }]}>
-                            {this.state.avatarSource === null ? (
-
+                            {this.state.avatarSource === null ? (   //ให้ช่องสำหรับถ่ายภาพตอนแรกเป็น null
                                 <Text style={styles.styleIm}>กดตรงนี้เพื่อถ่ายรูปครับ !</Text>
-
                             ) : (
-                                    <Image style={styles.avatar} source={this.state.avatarSource} />
+                                    <Image style={styles.avatar} source={this.state.avatarSource} />//เมื่อถ่ายภาพเสร็จจะเปลี่ยนจาก null เป็นภาพที่ set state เอาไว้
                                 )}
                         </View>
                     </TouchableOpacity>
-                    <TouchableOpacity  disabled={this.state.isdisabled} onPress={() => navigate('Data', { name: 'user' })} style={this.bgColor1()}>
+                    <TouchableOpacity disabled={this.state.isdisabled} onPress={() => navigate('Data', { name: 'user' })} style={this.bgColor1()}>
                         <Text style={styles.fontTitle}>View Information</Text>
+                        {/*สร้างปุ่ม view information เพื่อกดเข้าไปข้อมูลหลังจาก upload เสร็จ โดยให้ navigate ไปที่หน้า DataZoo*/}
                     </TouchableOpacity>
                     <AwesomeAlert
                         show={showAlert}
@@ -155,7 +150,7 @@ export default class TakePhoto extends React.Component {
 }
 const styles = StyleSheet.create({
     container: {
-        margin: 30,
+        margin: hp('4%'),
         flex: 1,
         alignItems: 'center',
     },
@@ -166,65 +161,63 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     avatar: {
-        //borderRadius: 75,
-        width: 350,
-        height: 400,
-        backgroundColor: '#E8ECF0',
-        //opacity: 0.9,
+        width: wp('85%'),
+        height: hp('55%'),
+        backgroundColor: '#E8ECF0'
     },
     menubtn: {
         marginLeft: 20,
-        width: '65%',
-        height: 80,
+        width: wp('50%'),
+        height: hp('13%'),
         backgroundColor: 'white',
         borderRadius: 6,
         justifyContent: 'center',
         padding: 3,
         textAlign: 'center',
         textAlignVertical: 'center',
-        fontSize: 40,
+        fontSize: hp('4.7%'),
         fontFamily: 'OpenSans_Light'
     },
     dataButton: {
-        marginTop: 10,
-        width: '100%',
-        height: 60,
+        marginTop: '3%',
+        width: wp('85%'),
+        height: hp('8%'),
         backgroundColor: '#2DCD87',
         borderRadius: 6,
         justifyContent: 'center',
         padding: 3,
         textAlign: 'center',
         textAlignVertical: 'center',
-        fontSize: 45,
+        fontSize: hp('4%'),
         fontFamily: 'OpenSans_Light',
         alignItems: 'center'
     },
     dataDefault: {
-        marginTop: 10,
-        width: '100%',
-        height: 60,
+        marginTop: '3%',
+        width: wp('85%'),
+        height: hp('8%'),
         backgroundColor: '#636465',
         borderRadius: 6,
         justifyContent: 'center',
         padding: 3,
         textAlign: 'center',
         textAlignVertical: 'center',
-        fontSize: 45,
+        fontSize: hp('4%'),
         fontFamily: 'OpenSans_Light',
         alignItems: 'center',
-        color:'#A5A6A7'
+        color: '#A5A6A7'
     },
     logo: {
-        width: 120,
-        height: 120,
+        width: wp('35%'),
+        height: hp('20%'),
         resizeMode: 'stretch'
     },
     fontTitle: {
         color: 'white',
         fontFamily: 'OpenSans_Bold',
-        fontSize: 30
+        fontSize: hp('4%')
     },
-    styleIm:{
-        fontSize:20,
+    styleIm: {
+        fontSize: hp('2.5%'),
     }
 });

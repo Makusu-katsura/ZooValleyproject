@@ -1,109 +1,74 @@
 import React, { Component } from 'react'
-import { Dimensions, StyleSheet, Text, View, StatusBar, TouchableOpacity, ImageBackground, Image } from 'react-native'
+import { Dimensions, StyleSheet, Text, View, StatusBar, TouchableOpacity, ImageBackground, Image, ActivityIndicator } from 'react-native'
 import axios from 'axios';
 import DeviceInfo, { getUniqueId } from 'react-native-device-info';
 import ImageZoom from 'react-native-image-pan-zoom';
-const uid = DeviceInfo.getUniqueId();
+import { widthPercentageToDP as wp, heightPercentageToDP as hp } from 'react-native-responsive-screen'
+const uid = DeviceInfo.getUniqueId();   //ดึง id ของเครื่อง user มาใช้เป็น user id 
 export default class DataZoo extends Component {
     static navigationOptions = {
         header: null,
     }
-
     state = {
         info: null,
         class: null
     };
-
     constructor(props) {
         super(props)
-        //this.image = image;
-        this.getAnimalClass()
-        console.log("stateClass:",this.state.class)
-        /*if(this.state.class != null){
-           setTimeout(() => { console.log("link:", this.state.info);
-            //console.log("classRe",this.state.class);
-            const aniclass = this.state.class;
-            console.log("aniRe:",aniclass);
-            this.getAnimalInfo(aniclass);
-        }, 4000);}*/
+        this.getAnimalClass()//เรียกใช้ function getAnimalClas เมื่อเข้ามาถึงหน้านี้ทันที
+        console.log("stateClass:", this.state.class)
     }
 
-    getAnimalClass() {
+    getAnimalClass() { // get class ของ animal มาเพื่อ reference ว่าเป็นสัตว์ตัวไหน
         const iduser = uid;
-        //const iduser = 'e0b964b8d89c35ee';
-        const url = `https://zoochatbotpython.appspot.com/getbyuser/animal/${iduser}`;
-        console.log("cuming:", url);
+        const url = `https://zoochatbotpython.appspot.com/getbyuser/animal/${iduser}`;   //url เชื่อม api กับ database โดยเพิ่ม user id ต่อท้ายเพื่อระบุตัวตน
+        console.log("coming:", url);
         const urll = url;
         axios.get(urll)
             .then((Data) => {
                 console.log("Aniclass:", Data.data.animal);
-                const animalClass = Data.data.animal;
-                console.log("animalClass:",animalClass);
-                this.setState({class: animalClass});
-                //this.setState({ class: 'wolf' });
-                console.log("classFix:",this.state.class)
+                const animalClass = Data.data.animal; //ให้ animalClass มีค่าเป็นข้อมูล class สัตว์ที่ดึงมาจาก api
+                console.log("animalClass:", animalClass);
+                this.setState({ class: animalClass }); //set state ให้ class  มีค่าเป็นข้อมูลที่ดึงมาจาก api
+                console.log("classFix:", this.state.class)
                 console.log("finished!");
                 const aniclass = this.state.class;
-                console.log("aniRe:",aniclass);
-                this.getAnimalInfo(aniclass);
+                console.log("aniRe:", aniclass);//check ค่าใน state
+                this.getAnimalInfo(aniclass);//นำค่าใน state ไปเรียกใช้ function 
             })
             .catch((err) => {
                 console.log('aniclass error', err);
             })
-        /*fetch(url,{
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
-        .then((Data) => {
-            console.log("Aniclass:", Data.data.animal);
-            //const animalClass = Data.data.animal;
-            //this.setState({class: animalClass});
-            this.setState({ class: 'wolf' });
-            console.log("finished!");
-        })
-        .catch((err) => {
-            console.log('aniclass error', err);
-        })*/
     }
-    getAnimalInfo(animalClass) {
-        const url = `https://zoochatbotpython.appspot.com/getanimalinfo/${animalClass}`;
+    getAnimalInfo(animalClass) { //นำ class ที่ได้มาไป get ข้อมูลของสัตว์ตัวนั้น
+        const url = `https://zoochatbotpython.appspot.com/getanimalinfo/${animalClass}`;//url เชื่อม api กับ database โดยเพิ่ม animalClass ต่อท้ายเพื่อระบุสัตว์ที่จะดึงข้อมูล
         const url2 = url;
         axios.get(url2)
             .then((Data) => {
                 console.log("Animal:", Data.data.info);
-                const animalInfo = Data.data.info;
+                const animalInfo = Data.data.info;//ให้ animalClass มีค่าเป็นข้อมูลของสัตว์ที่ดึงมาจาก api
                 console.log("animalInfo:", animalInfo);
-                this.setState({ info: animalInfo });
+                this.setState({ info: animalInfo });//set state ให้ info มีค่าเป็นข้อมูลที่ดึงมาจาก api
             })
             .catch(err => {
                 console.log('Animal error', err);
             });
-        //return animalInfo;
     }
     render() {
         return (
             <ImageBackground source={require('./Image/bg1.png')} style={styles.backgroundImage}>
-                <ImageZoom style={styles.dataGet} //cropWidth={'125%'}
-                    //cropHeight={'100%'}
-                    //imageWidth={'70%'}
-                    //imageHeight={'100%'}
+
+                <ImageZoom style={styles.dataGet}
                     cropWidth={Dimensions.get('window').width}
                     cropHeight={Dimensions.get('window').height}
                     imageWidth={Dimensions.get('window').width}
-                    imageHeight={Dimensions.get('window').height *10/10}
+                    imageHeight={Dimensions.get('window').height * 9 / 10}
                 >
                     <Image source={{ uri: this.state.info }} style={{
-                        //width: '70%',
-                        //height: '100%' ,
-                        // marginLeft: 10
-                        width: Dimensions.get('window').width,
-                        height: Dimensions.get('window').height *11/10
-                        //width: Dimensions.get('window').width,
-                        //height: Dimensions.get('window').height - 100
+                        width: wp('100%'),
+                        height: hp('90%')
                     }}></Image>
-                </ImageZoom>
+                </ImageZoom>{/*นำรูปข้อมูลสัตว์มาใส่ libary ImageZoom เพื่อให้ย่อ/ขยายได้*/}
             </ImageBackground>
         )
     }
@@ -174,7 +139,6 @@ const styles = StyleSheet.create({
         borderRadius: 6,
     },
     dataGet: {
-        //margin:10,
         width: '100%',
         height: '100%',
         borderRadius: 6,
